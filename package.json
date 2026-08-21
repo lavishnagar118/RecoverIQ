@@ -1,0 +1,25 @@
+{
+  "name": "recoveriq",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RecoverIQ foundation workspace for the Razorpay Buildathon Track 3 submission.",
+  "workspaces": [
+    "apps/backend",
+    "apps/frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace @recoveriq/backend",
+    "dev:frontend": "npm run dev --workspace @recoveriq/frontend",
+    "build": "npm run build --workspaces",
+    "build:backend": "npm run build --workspace @recoveriq/backend",
+    "build:frontend": "npm run build --workspace @recoveriq/frontend",
+    "typecheck": "npm run typecheck --workspaces",
+    "typecheck:backend": "npm run typecheck --workspace @recoveriq/backend",
+    "typecheck:frontend": "npm run typecheck --workspace @recoveriq/frontend",
+    "test": "npm run test --workspace @recoveriq/backend",
+    "test:backend": "npm run test --workspace @recoveriq/backend"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
