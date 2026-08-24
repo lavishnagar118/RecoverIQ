@@ -2,6 +2,7 @@ import express from "express";
 
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { requestLogger } from "./middleware/requestLogger.js";
+import { recoveryRouter } from "./recovery/index.js";
 import { healthRouter } from "./routes/health.js";
 
 export const createApp = () => {
@@ -11,6 +12,7 @@ export const createApp = () => {
   app.use(requestLogger);
 
   app.use("/api/health", healthRouter);
+  app.use("/api/recovery", recoveryRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

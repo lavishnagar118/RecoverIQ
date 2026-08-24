@@ -3,7 +3,7 @@
 AI Revenue Recovery orchestration system for the Razorpay Buildathon - Track 3: AI Revenue Recovery.
 
 ## Current Status
-Milestone 1: Development foundation.
+Milestone 2: Recovery domain and synthetic evaluation foundation.
 
 ## Product Goal
 Find revenue at risk, diagnose why it is slipping, choose a bounded recovery intervention, execute it through controlled backend tools, and measure the money actually recovered.
@@ -19,7 +19,7 @@ This repository is intentionally a foundation-first starter. Do not ask an AI co
 - AI: provider-agnostic LLM/tool-calling layer
 - Testing: Vitest + Supertest for backend tests
 
-Tailwind CSS, Razorpay integration, AI tooling, recovery logic, policy logic, and production authentication are intentionally not implemented in Milestone 1.
+Tailwind CSS, Razorpay integration, AI tooling, policy logic, payment actions, and production authentication are intentionally not implemented yet.
 
 ## Project Structure
 
@@ -67,6 +67,24 @@ Backend health check:
 ```powershell
 Invoke-RestMethod http://localhost:5000/api/health
 ```
+
+Synthetic recovery summary:
+
+```powershell
+Invoke-RestMethod http://localhost:5000/api/recovery/summary
+```
+
+Synthetic recovery cases:
+
+```powershell
+Invoke-RestMethod "http://localhost:5000/api/recovery/cases?limit=10"
+```
+
+The recovery endpoints use deterministic synthetic data. They do not represent real merchant recovery results.
+
+## Monetary Units
+
+Backend monetary fields are stored as integer INR paise. For example, Rs. 5,000 is represented as `500000`.
 
 ## Quality Commands
 
