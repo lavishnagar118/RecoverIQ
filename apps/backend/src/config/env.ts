@@ -10,6 +10,14 @@ export interface EnvConfig {
   nodeEnv: NodeEnv;
   port: number;
   mongoDbUri?: string;
+  ai: {
+    enabled: boolean;
+    provider?: string;
+    apiKey?: string;
+    model?: string;
+    requestTimeoutMs: number;
+    maxOutputTokens: number;
+  };
 }
 
 const normalizeNodeEnv = (value: string | undefined): NodeEnv => {
@@ -39,8 +47,39 @@ const optionalString = (value: string | undefined): string | undefined => {
   return trimmed ? trimmed : undefined;
 };
 
+const parseBoolean = (value: string | undefined): boolean => value?.toLowerCase() === "true";
+
+const parsePositiveInteger = (value: string | undefined, fallback: number, fieldName: string): number => {
+  if (!value) {
+    return fallback;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`${fieldName} must be a positive integer`);
+  }
+
+  return parsed;
+};
+
 export const env: EnvConfig = {
   nodeEnv: normalizeNodeEnv(process.env.NODE_ENV),
   port: parsePort(process.env.PORT),
-  mongoDbUri: optionalString(process.env.MONGODB_URI)
+  mongoDbUri: optionalString(process.env.MONGODB_URI),
+  ai: {
+    enabled: parseBoolean(process.env.AI_ENABLED),
+    provider: optionalString(process.env.AI_PROVIDER),
+    apiKey: optionalString(process.env.AI_API_KEY),
+    model: optionalString(process.env.AI_MODEL),
+    requestTimeoutMs: parsePositiveInteger(
+      process.env.AI_REQUEST_TIMEOUT_MS,
+      8_000,
+      "AI_REQUEST_TIMEOUT_MS"
+    ),
+    maxOutputTokens: parsePositiveInteger(
+      process.env.AI_MAX_OUTPUT_TOKENS,
+      800,
+      "AI_MAX_OUTPUT_TOKENS"
+    )
+  }
 };

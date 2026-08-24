@@ -3,7 +3,7 @@
 AI Revenue Recovery orchestration system for the Razorpay Buildathon - Track 3: AI Revenue Recovery.
 
 ## Current Status
-Milestone 2: Recovery domain and synthetic evaluation foundation.
+Milestone 4: Controlled AI advisory layer over the deterministic recovery engine.
 
 ## Product Goal
 Find revenue at risk, diagnose why it is slipping, choose a bounded recovery intervention, execute it through controlled backend tools, and measure the money actually recovered.
@@ -19,7 +19,7 @@ This repository is intentionally a foundation-first starter. Do not ask an AI co
 - AI: provider-agnostic LLM/tool-calling layer
 - Testing: Vitest + Supertest for backend tests
 
-Tailwind CSS, Razorpay integration, AI tooling, policy logic, payment actions, and production authentication are intentionally not implemented yet.
+Tailwind CSS, Razorpay integration, payment execution, and production authentication are intentionally not implemented yet. The AI layer is advisory only and cannot execute actions, modify money values, or change recovery state.
 
 ## Project Structure
 
@@ -79,6 +79,10 @@ Synthetic recovery cases:
 ```powershell
 Invoke-RestMethod "http://localhost:5000/api/recovery/cases?limit=10"
 ```
+
+## Local AI configuration
+
+AI advisory mode is disabled by default. Set `AI_ENABLED=true` only when a compatible structured-output HTTP provider is configured by application code. Keep `AI_API_KEY` in the local environment and never commit it. Tests use fake providers and never call a real AI service.
 
 The recovery endpoints use deterministic synthetic data. They do not represent real merchant recovery results.
 
