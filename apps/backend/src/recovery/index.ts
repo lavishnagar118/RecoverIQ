@@ -1,4 +1,7 @@
 export { recoveryRouter } from "./routes/recoveryRoutes.js";
+export { RecoveryExecutionService } from "./execution/recoveryExecutionService.js";
+export { validatePaymentLinkExecution } from "./execution/recoveryPolicyGate.js";
+export { buildPaymentLinkReferenceId, mapPaymentLinkRequest } from "../payments/paymentLinkMapper.js";
 export {
   calculateExpectedRecoveryValue,
   calculateTotalAmountAtRisk,

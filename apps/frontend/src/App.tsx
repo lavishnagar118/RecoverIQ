@@ -11,6 +11,17 @@ interface RecoverySummary {
   statusDistribution: Record<string, number>;
 }
 
+interface RecoveryCase {
+  caseId: string;
+  amountAtRisk: number;
+  status: string;
+  selectedAction?: string;
+}
+
+interface RecoveryCaseResponse {
+  cases: RecoveryCase[];
+}
+
 const emptySummaryItems = [
   {
     label: "Cases",
@@ -48,6 +59,9 @@ function App() {
   const [summary, setSummary] = useState<RecoverySummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [demoCase, setDemoCase] = useState<RecoveryCase | null>(null);
+  const [execution, setExecution] = useState<{ status: string; shortUrl?: string } | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -82,6 +96,39 @@ function App() {
 
     return () => controller.abort();
   }, [apiBaseUrl]);
+
+  useEffect(() => {
+    const loadCase = async () => {
+      try {
+        const response = await fetch(`${apiBaseUrl}/api/recovery/cases?limit=10`);
+        if (!response.ok) throw new Error(`Recovery cases request failed with ${response.status}`);
+        const data = (await response.json()) as RecoveryCaseResponse;
+        setDemoCase(data.cases.find((candidate) => candidate.status === "AT_RISK") ?? data.cases[0] ?? null);
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : "Recovery cases request failed");
+      }
+    };
+    void loadCase();
+  }, [apiBaseUrl]);
+
+  const executePaymentLink = async () => {
+    if (!demoCase) return;
+    setIsExecuting(true);
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/recovery/cases/${demoCase.caseId}/actions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "CREATE_PAYMENT_LINK" })
+      });
+      const data = (await response.json()) as { error?: { message?: string }; status?: string; shortUrl?: string };
+      if (!response.ok) throw new Error(data.error?.message ?? `Payment Link request failed with ${response.status}`);
+      setExecution({ status: data.status ?? "WAITING_RESULT", shortUrl: data.shortUrl });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Payment Link request failed");
+    } finally {
+      setIsExecuting(false);
+    }
+  };
 
   const summaryItems = useMemo(() => {
     if (!summary) {
@@ -170,6 +217,29 @@ function App() {
             <span>Checkout abandonment recovery</span>
           </div>
         </section>
+
+        {demoCase ? (
+          <section className="workspace-panel" aria-label="Razorpay Test Mode demo">
+            <div>
+              <p className="eyebrow">Razorpay Test Mode</p>
+              <h2>CREATE_PAYMENT_LINK</h2>
+              <p className="panel-copy">
+                Case {demoCase.caseId} · {formatCurrency(demoCase.amountAtRisk)} ·{" "}
+                {execution?.status ?? demoCase.status}
+              </p>
+              {execution?.shortUrl ? (
+                <p>
+                  <a href={execution.shortUrl} target="_blank" rel="noreferrer">
+                    Open Payment Link
+                  </a>
+                </p>
+              ) : null}
+            </div>
+            <button type="button" onClick={() => void executePaymentLink()} disabled={isExecuting || Boolean(execution)}>
+              {isExecuting ? "Creating..." : execution ? "Waiting for result" : "Execute recovery action"}
+            </button>
+          </section>
+        ) : null}
 
         <section className="status-panel" aria-label="Recovery status counts">
           <div>

@@ -10,6 +10,14 @@ export interface EnvConfig {
   nodeEnv: NodeEnv;
   port: number;
   mongoDbUri?: string;
+  razorpay: {
+    mode?: "test";
+    keyId?: string;
+    keySecret?: string;
+    webhookSecret?: string;
+    apiBaseUrl: string;
+    requestTimeoutMs: number;
+  };
   ai: {
     enabled: boolean;
     provider?: string;
@@ -62,10 +70,29 @@ const parsePositiveInteger = (value: string | undefined, fallback: number, field
   return parsed;
 };
 
+const parseRazorpayMode = (value: string | undefined): "test" | undefined => {
+  const mode = optionalString(value);
+  if (!mode) return undefined;
+  if (mode !== "test") throw new Error("RAZORPAY_MODE must be test");
+  return "test";
+};
+
 export const env: EnvConfig = {
   nodeEnv: normalizeNodeEnv(process.env.NODE_ENV),
   port: parsePort(process.env.PORT),
   mongoDbUri: optionalString(process.env.MONGODB_URI),
+  razorpay: {
+    mode: parseRazorpayMode(process.env.RAZORPAY_MODE),
+    keyId: optionalString(process.env.RAZORPAY_KEY_ID),
+    keySecret: optionalString(process.env.RAZORPAY_KEY_SECRET),
+    webhookSecret: optionalString(process.env.RAZORPAY_WEBHOOK_SECRET),
+    apiBaseUrl: optionalString(process.env.RAZORPAY_API_BASE_URL) ?? "https://api.razorpay.com",
+    requestTimeoutMs: parsePositiveInteger(
+      process.env.RAZORPAY_REQUEST_TIMEOUT_MS,
+      10_000,
+      "RAZORPAY_REQUEST_TIMEOUT_MS"
+    )
+  },
   ai: {
     enabled: parseBoolean(process.env.AI_ENABLED),
     provider: optionalString(process.env.AI_PROVIDER),

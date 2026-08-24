@@ -92,6 +92,12 @@ export interface RecoveryCaseInput {
   updatedAt: string;
 }
 
+export interface PersistedRecoveryCase extends RecoveryCaseInput {
+  selectedAction?: import("../actions/recoveryActions.js").RecoveryAction;
+  recoveredAmountPaise?: number;
+  recoveredPaymentId?: string;
+}
+
 export interface RecoveryCase extends RecoveryCaseInput {
   recoveryProbability: number;
   /** Stored as integer INR paise. */
