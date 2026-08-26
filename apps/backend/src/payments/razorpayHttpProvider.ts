@@ -1,7 +1,7 @@
 import { env } from "../config/env.js";
 import { RazorpayProviderError } from "./razorpayErrors.js";
 import {
-  mapPaymentLinkListResponse,
+  mapPaymentLinksListResponse,
   mapPaymentLinkRequest,
   mapPaymentLinkResponse
 } from "./paymentLinkMapper.js";
@@ -33,7 +33,7 @@ export class RazorpayHttpProvider implements RazorpayProvider {
   }
 
   async findPaymentLinksByReferenceId(referenceId: string): Promise<RazorpayPaymentLink[]> {
-    return mapPaymentLinkListResponse(
+    return mapPaymentLinksListResponse(
       await this.requestRaw(
         `/v1/payment_links?reference_id=${encodeURIComponent(referenceId)}`,
         { method: "GET" }

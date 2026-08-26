@@ -59,9 +59,9 @@ export const mapPaymentLinkResponse = (value: unknown): RazorpayPaymentLink => {
   };
 };
 
-export const mapPaymentLinkListResponse = (value: unknown): RazorpayPaymentLink[] => {
-  if (!value || typeof value !== "object" || !Array.isArray((value as { items?: unknown }).items)) {
+export const mapPaymentLinksListResponse = (value: unknown): RazorpayPaymentLink[] => {
+  if (!value || typeof value !== "object" || !Array.isArray((value as { payment_links?: unknown }).payment_links)) {
     throw new Error("Razorpay returned an invalid Payment Link list response");
   }
-  return (value as { items: unknown[] }).items.map(mapPaymentLinkResponse);
+  return (value as { payment_links: unknown[] }).payment_links.map(mapPaymentLinkResponse);
 };

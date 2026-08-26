@@ -34,20 +34,25 @@ describe("RazorpayHttpProvider", () => {
 
   it("maps a realistic Razorpay list response separately", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(response(200, {
-      count: 1,
-      items: [{
+      payment_links: [{
         id: "plink_1",
-        amount: 100,
-        amount_paid: 0,
+        amount: 125000,
         currency: "INR",
-        reference_id: "case:1:CREATE_PAYMENT_LINK",
+        reference_id: "case-1:2:CREATE_PAYMENT_LINK",
         status: "created",
-        short_url: "https://rzp.io/demo"
+        expire_by: 1_735_689_600
       }]
     }));
     const provider = new RazorpayHttpProvider(config, fetchImpl);
-    await expect(provider.findPaymentLinksByReferenceId("case:1:CREATE_PAYMENT_LINK")).resolves.toMatchObject([
-      { id: "plink_1", amount: 100, reference_id: "case:1:CREATE_PAYMENT_LINK" }
+    await expect(provider.findPaymentLinksByReferenceId("case-1:2:CREATE_PAYMENT_LINK")).resolves.toMatchObject([
+      {
+        id: "plink_1",
+        amount: 125000,
+        currency: "INR",
+        reference_id: "case-1:2:CREATE_PAYMENT_LINK",
+        status: "created",
+        expire_by: 1_735_689_600
+      }
     ]);
   });
 
