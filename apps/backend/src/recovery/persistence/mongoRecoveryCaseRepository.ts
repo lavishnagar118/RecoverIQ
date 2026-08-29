@@ -17,6 +17,22 @@ export class MongoRecoveryCaseRepository implements RecoveryCaseRepository {
     return (await this.collection.findOne({ caseId })) ?? undefined;
   }
 
+  async list(filters: {
+    status?: PersistedRecoveryCase["status"];
+    scenarioType?: PersistedRecoveryCase["scenarioType"];
+    limit?: number;
+  } = {}): Promise<PersistedRecoveryCase[]> {
+    const query = {
+      ...(filters.status ? { status: filters.status } : {}),
+      ...(filters.scenarioType ? { scenarioType: filters.scenarioType } : {})
+    };
+    return this.collection
+      .find(query)
+      .sort({ updatedAt: -1 })
+      .limit(filters.limit ?? 100)
+      .toArray();
+  }
+
   async save(recoveryCase: PersistedRecoveryCase): Promise<void> {
     await this.collection.insertOne(recoveryCase);
   }

@@ -20,7 +20,7 @@ export const errorHandler: ErrorRequestHandler = (error: HttpError, _req, res, _
   const isServerError = statusCode >= 500;
 
   if (isServerError && env.nodeEnv !== "test") {
-    console.error("[recoveriq] unhandled request error", error);
+    console.error("[recoveriq] unhandled request error", error.message, error.stack ?? "");
   }
 
   res.status(statusCode).json({

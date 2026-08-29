@@ -2,6 +2,11 @@ import type { PersistedRecoveryCase } from "../domain/recoveryCase.js";
 
 export interface RecoveryCaseRepository {
   getById(caseId: string): Promise<PersistedRecoveryCase | undefined>;
+  list(filters?: {
+    status?: PersistedRecoveryCase["status"];
+    scenarioType?: PersistedRecoveryCase["scenarioType"];
+    limit?: number;
+  }): Promise<PersistedRecoveryCase[]>;
   save(recoveryCase: PersistedRecoveryCase): Promise<void>;
   update(caseId: string, update: Partial<PersistedRecoveryCase>): Promise<PersistedRecoveryCase>;
   transition(
@@ -18,6 +23,18 @@ export class InMemoryRecoveryCaseRepository implements RecoveryCaseRepository {
 
   async getById(caseId: string): Promise<PersistedRecoveryCase | undefined> {
     return this.cases.get(caseId);
+  }
+
+  async list(filters: {
+    status?: PersistedRecoveryCase["status"];
+    scenarioType?: PersistedRecoveryCase["scenarioType"];
+    limit?: number;
+  } = {}): Promise<PersistedRecoveryCase[]> {
+    const cases = [...this.cases.values()]
+      .filter((recoveryCase) => !filters.status || recoveryCase.status === filters.status)
+      .filter((recoveryCase) => !filters.scenarioType || recoveryCase.scenarioType === filters.scenarioType)
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+    return filters.limit ? cases.slice(0, filters.limit) : cases;
   }
 
   async save(recoveryCase: PersistedRecoveryCase): Promise<void> {

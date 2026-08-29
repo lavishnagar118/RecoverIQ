@@ -115,3 +115,14 @@ export const env: EnvConfig = {
     )
   }
 };
+
+if (env.ai.enabled && (!env.ai.provider || !env.ai.model)) {
+  throw new Error("AI_ENABLED=true requires AI_PROVIDER and AI_MODEL");
+}
+
+if (env.ai.enabled && env.ai.provider && !env.ai.apiKey) {
+  const providerUrl = new URL(env.ai.provider);
+  if (!["localhost", "127.0.0.1", "::1"].includes(providerUrl.hostname)) {
+    throw new Error("AI_ENABLED=true requires AI_API_KEY for non-local providers");
+  }
+}

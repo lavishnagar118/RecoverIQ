@@ -16,6 +16,14 @@ export class MongoAuditRepository implements AuditRepository {
   async append(event: AuditEvent): Promise<void> {
     await this.collection.insertOne(event);
   }
+
+  async list(filters: { caseId?: string; limit?: number } = {}): Promise<AuditEvent[]> {
+    return this.collection
+      .find(filters.caseId ? { caseId: filters.caseId } : {})
+      .sort({ createdAt: -1 })
+      .limit(filters.limit ?? 200)
+      .toArray();
+  }
 }
 
 export class InMemoryAuditRepository implements AuditRepository {
@@ -23,5 +31,12 @@ export class InMemoryAuditRepository implements AuditRepository {
 
   async append(event: AuditEvent): Promise<void> {
     this.events.push(event);
+  }
+
+  async list(filters: { caseId?: string; limit?: number } = {}): Promise<AuditEvent[]> {
+    const events = this.events
+      .filter((event) => !filters.caseId || event.caseId === filters.caseId)
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    return filters.limit ? events.slice(0, filters.limit) : events;
   }
 }

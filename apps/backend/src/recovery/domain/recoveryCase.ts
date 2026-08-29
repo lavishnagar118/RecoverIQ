@@ -93,6 +93,9 @@ export interface RecoveryCaseInput {
 }
 
 export interface PersistedRecoveryCase extends RecoveryCaseInput {
+  recoveryProbability?: number;
+  expectedRecoveryValue?: number;
+  scoringReasons?: string[];
   selectedAction?: import("../actions/recoveryActions.js").RecoveryAction;
   recoveredAmountPaise?: number;
   recoveredPaymentId?: string;

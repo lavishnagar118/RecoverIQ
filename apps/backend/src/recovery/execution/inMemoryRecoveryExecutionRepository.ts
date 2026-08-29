@@ -35,4 +35,11 @@ export class InMemoryRecoveryExecutionRepository implements RecoveryExecutionRep
   async findByPaymentLinkId(paymentLinkId: string): Promise<RecoveryExecution | undefined> {
     return [...this.executions.values()].find((execution) => execution.razorpayPaymentLinkId === paymentLinkId);
   }
+
+  async list(filters: { caseId?: string; limit?: number } = {}): Promise<RecoveryExecution[]> {
+    const executions = [...this.executions.values()]
+      .filter((execution) => !filters.caseId || execution.caseId === filters.caseId)
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+    return filters.limit ? executions.slice(0, filters.limit) : executions;
+  }
 }

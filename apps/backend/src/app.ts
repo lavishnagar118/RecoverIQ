@@ -5,6 +5,7 @@ import { requestLogger } from "./middleware/requestLogger.js";
 import { recoveryRouter } from "./recovery/index.js";
 import { healthRouter } from "./routes/health.js";
 import { getRecoveryRuntime } from "./recovery/execution/recoveryRuntime.js";
+import { recoveryOperationsRouter } from "./recovery/routes/recoveryOperationsRoutes.js";
 
 export const createApp = () => {
   const app = express();
@@ -26,6 +27,7 @@ export const createApp = () => {
 
   app.use("/api/health", healthRouter);
   app.use("/api/recovery", recoveryRouter);
+  app.use("/api/recovery/operations", recoveryOperationsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

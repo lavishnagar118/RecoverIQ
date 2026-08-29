@@ -119,4 +119,131 @@ describe("fetch AI provider security", () => {
       new AiProviderError("AI provider response did not contain output", "MALFORMED_RESPONSE")
     );
   });
+
+  it("adapts OpenAI Responses structured output to the internal output contract", async () => {
+    let capturedBody: Record<string, unknown> | undefined;
+    const provider = new FetchAiProvider(
+      "https://api.openai.com/v1/responses",
+      "test-key",
+      "openai",
+      "gpt-5.6",
+      async (_url, init) => {
+        capturedBody = JSON.parse(String(init.body)) as Record<string, unknown>;
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            output: [
+              {
+                type: "reasoning",
+                content: []
+              },
+              {
+                type: "message",
+                content: [{ type: "output_text", text: '{"message":"ok"}' }]
+              }
+            ]
+          })
+        };
+      },
+      { format: "openai-responses" }
+    );
+
+    await expect(provider.generateStructured(request)).resolves.toMatchObject({
+      output: { message: "ok" },
+      provider: "openai",
+      model: "gpt-5.6"
+    });
+    expect(capturedBody).toMatchObject({
+      model: "gpt-5.6",
+      store: false,
+      max_output_tokens: 20,
+      text: {
+        format: {
+          type: "json_schema",
+          strict: true
+        }
+      }
+    });
+    expect(capturedBody?.input).toEqual([
+      {
+        role: "user",
+        content: 'RecoverIQ context:\n{"dataClassification":"synthetic"}'
+      }
+    ]);
+  });
+
+  it("calls Ollama with local structured chat output and no authorization header", async () => {
+    let capturedUrl = "";
+    let capturedInit: RequestInit | undefined;
+    const provider = new FetchAiProvider(
+      "http://localhost:11434/api/chat",
+      "",
+      "ollama",
+      "qwen2.5:3b",
+      async (url, init) => {
+        capturedUrl = url;
+        capturedInit = init;
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ message: { content: '{"message":"ok"}' } })
+        };
+      },
+      { format: "ollama", allowInsecureLocalhost: true }
+    );
+
+    await expect(provider.generateStructured(request)).resolves.toMatchObject({
+      output: { message: "ok" },
+      provider: "ollama",
+      model: "qwen2.5:3b"
+    });
+    expect(capturedUrl).toBe("http://localhost:11434/api/chat");
+    expect(capturedInit?.headers).toEqual({ "content-type": "application/json" });
+    expect(JSON.parse(String(capturedInit?.body))).toMatchObject({
+      model: "qwen2.5:3b",
+      stream: false,
+      format: request.outputSchema,
+      messages: [
+        { role: "system", content: "system\n\ndeveloper" },
+        { role: "user", content: expect.stringContaining("RecoverIQ context and conversation:") }
+      ]
+    });
+  });
+
+  it("rejects malformed Ollama structured output", async () => {
+    const provider = new FetchAiProvider(
+      "http://localhost:11434/api/chat",
+      "",
+      "ollama",
+      "qwen2.5:3b",
+      async () => ({ ok: true, status: 200, json: async () => ({ message: { content: "not-json" } }) }),
+      { format: "ollama", allowInsecureLocalhost: true }
+    );
+
+    await expect(provider.generateStructured(request)).rejects.toMatchObject({
+      name: "AiProviderError",
+      code: "MALFORMED_RESPONSE"
+    });
+  });
+
+  it("retries transient HTTP 429 responses", async () => {
+    let calls = 0;
+    const provider = new FetchAiProvider(
+      "http://localhost:11434/api/chat",
+      "",
+      "ollama",
+      "qwen2.5:3b",
+      async () => {
+        calls += 1;
+        return calls < 3
+          ? { ok: false, status: 429, json: async () => ({}) }
+          : { ok: true, status: 200, json: async () => ({ message: { content: '{"message":"ok"}' } }) };
+      },
+      { format: "ollama", allowInsecureLocalhost: true }
+    );
+
+    await expect(provider.generateStructured(request)).resolves.toMatchObject({ output: { message: "ok" } });
+    expect(calls).toBe(3);
+  });
 });

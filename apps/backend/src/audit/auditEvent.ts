@@ -34,4 +34,5 @@ export interface AuditEvent {
 
 export interface AuditRepository {
   append(event: AuditEvent): Promise<void>;
+  list(filters?: { caseId?: string; limit?: number }): Promise<AuditEvent[]>;
 }

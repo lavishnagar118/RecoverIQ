@@ -32,4 +32,5 @@ export interface RecoveryExecutionRepository {
   ): Promise<RecoveryExecution | undefined>;
   findByKey(executionKey: string): Promise<RecoveryExecution | undefined>;
   findByPaymentLinkId(paymentLinkId: string): Promise<RecoveryExecution | undefined>;
+  list(filters?: { caseId?: string; limit?: number }): Promise<RecoveryExecution[]>;
 }

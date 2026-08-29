@@ -61,4 +61,12 @@ export class MongoRecoveryExecutionRepository implements RecoveryExecutionReposi
   async findByPaymentLinkId(paymentLinkId: string): Promise<RecoveryExecution | undefined> {
     return (await this.collection.findOne({ razorpayPaymentLinkId: paymentLinkId })) ?? undefined;
   }
+
+  async list(filters: { caseId?: string; limit?: number } = {}): Promise<RecoveryExecution[]> {
+    return this.collection
+      .find(filters.caseId ? { caseId: filters.caseId } : {})
+      .sort({ updatedAt: -1 })
+      .limit(filters.limit ?? 100)
+      .toArray();
+  }
 }

@@ -15,6 +15,7 @@ import type { RecoveryExecutionRepository } from "./recoveryExecution.js";
 import type { AuditRepository } from "../../audit/auditEvent.js";
 
 export interface RecoveryRuntime {
+  dataSource: "mongo" | "synthetic";
   cases: RecoveryCaseRepository;
   executions: RecoveryExecutionRepository;
   audit: AuditRepository;
@@ -33,7 +34,7 @@ const createRuntime = async (): Promise<RecoveryRuntime> => {
     const webhooks = new MongoWebhookRepository(db);
     await Promise.all([cases.ensureIndexes(), executions.ensureIndexes(), audit.ensureIndexes(), webhooks.ensureIndexes()]);
     const execution = new RecoveryExecutionService(cases, executions, new RazorpayHttpProvider(), audit);
-    return { cases, executions, audit, execution, webhook: new RazorpayWebhookService(execution, webhooks, audit) };
+    return { dataSource: "mongo", cases, executions, audit, execution, webhook: new RazorpayWebhookService(execution, webhooks, audit) };
   }
 
   const cases = new InMemoryRecoveryCaseRepository();
@@ -42,7 +43,7 @@ const createRuntime = async (): Promise<RecoveryRuntime> => {
   const audit = new InMemoryAuditRepository();
   const webhooks = new InMemoryWebhookRepository();
   const execution = new RecoveryExecutionService(cases, executions, new RazorpayHttpProvider(), audit, { requireDurableStorage: true });
-  return { cases, executions, audit, execution, webhook: new RazorpayWebhookService(execution, webhooks, audit) };
+  return { dataSource: "synthetic", cases, executions, audit, execution, webhook: new RazorpayWebhookService(execution, webhooks, audit) };
 };
 
 export const getRecoveryRuntime = (): Promise<RecoveryRuntime> => {

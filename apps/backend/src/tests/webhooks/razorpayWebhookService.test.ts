@@ -35,6 +35,11 @@ class FailOnceAudit implements AuditRepository {
     }
     this.events.push(event);
   }
+
+  async list(filters: { caseId?: string; limit?: number } = {}): Promise<AuditEvent[]> {
+    const events = this.events.filter((event) => !filters.caseId || event.caseId === filters.caseId);
+    return filters.limit ? events.slice(0, filters.limit) : events;
+  }
 }
 
 const makePayload = (event: string, status: string, amountPaid = 1000) => Buffer.from(JSON.stringify({
